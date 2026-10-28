@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="listView">
+    <header>
+      <span class="logo" data-icon="grid"></span>
+      <h1>Website Groups</h1>
+      <span class="meta" id="tabCount"></span>
+      <button class="btn icon ghost" id="openBackup" title="Back up or restore groups" aria-label="Back up or restore groups" data-icon="backup"></button>
+      <button class="btn icon" id="addGroup" title="New group" aria-label="New group" data-icon="plus"></button>
+    </header>
+    <div id="groups"></div>
+  </div>
+
+  <div id="editView" class="hidden">
+    <header>
+      <button class="btn icon ghost" id="backEdit" title="Back" aria-label="Back" data-icon="back"></button>
+      <h1 id="editTitle">Edit group</h1>
+    </header>
+    <div class="body">
+      <label class="field"><span>Name</span><input id="editName" placeholder="Morning reading"></label>
+      <div class="field"><span>Icon</span><div class="picker" id="iconPicker"></div></div>
+      <div class="field"><span>Colour</span><div class="picker" id="colorPicker"></div></div>
+      <label class="field"><span>URLs or keywords, one per line</span>
+        <textarea id="editEntries" spellcheck="false" placeholder="utmost.org&#10;https://www.bbc.com/news"></textarea>
+      </label>
+      <div class="hint">
+        <div><b>Open</b> opens each line as a tab (https:// is added if missing).</div>
+        <div><b>Close</b> closes tabs on these sites, including subdomains. A line that isn't a web address, like <i>bible</i>, closes any tab whose address contains it.</div>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="saveGroup">Save</button>
+        <button class="btn" id="cancelEdit">Cancel</button>
+        <span class="spacer"></span>
+        <button class="btn danger" id="deleteGroup"><span data-icon="trash"></span>Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="status" class="hidden"><span></span><span id="statusText"></span></div>
+
+  <script src="icons.js"></script>
+  <script src="storage.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
