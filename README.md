@@ -34,7 +34,7 @@ Each line in a group is either a web address or a keyword:
 2. Open `chrome://extensions` and turn on **Developer mode**.
 3. Click **Load unpacked** and choose the repository folder.
 
-Chrome works out an unpacked extension's ID from its folder path, so moving or renaming the folder gives it a new ID with empty storage. Export your groups first from the backup page.
+The `key` in `manifest.json` gives the unpacked copy the same extension ID as the Chrome Web Store version (`kiacknbdngediookdopfcjplciokcokm`), so it keeps the same saved groups wherever the folder is. Because the IDs match, remove the store version before loading the unpacked one.
 
 ## Build the store package
 
@@ -42,7 +42,7 @@ Chrome works out an unpacked extension's ID from its folder path, so moving or r
 python build.py
 ```
 
-This creates `dist/website-groups-<version>.zip` with only the files the extension needs. Increase `version` in `manifest.json` before building an update.
+This creates `dist/website-groups-<version>.zip` with only the files the extension needs, and leaves `key` out of its manifest. Increase `version` in `manifest.json` before building an update.
 
 ## Files
 

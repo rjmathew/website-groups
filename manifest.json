@@ -3,6 +3,7 @@
   "name": "Website Groups",
   "description": "Open or close a whole group of websites in one click. Make groups for your morning reading, work tools or distractions.",
   "version": "1.0.1",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtihk/l0bc1bJIxf3LXdTHOdRnj88FQWPvWiyJOlhXSNu9nSs55rnu2EW9z6S3C/MO0bTu90PJijPeFOAmT4yWiSWGizK/nv2mtFYXzj97PcodPBmBEJ2lPWgTW7U6U2nRnVNiMWpd5gj/X3YnAsplbSk4Lu+BvS7kqikciTLTtMguIoIu40HZKsL3kvlPA8E5+TQFAU4a/p0ufyZpIvShEiR5eLjPTN3UT4uU1LSLoNqQooFRMdQ4SkIrPWO9Yf2uq5wxkKgLafOP/Fbx6G3e4mGMlCL4gWdZH+txVi+DIxsFoOxJuOdtjeY2UD9eWjPdWQHlP2kNnM0yuZn7jbiLwIDAQAB",
   "permissions": ["tabs", "storage"],
   "icons": {
     "16": "icons/icon16.png",

@@ -27,7 +27,13 @@ if not referenced <= set(FILES):
 
 os.makedirs("dist", exist_ok=True)
 out = f"dist/website-groups-{manifest['version']}.zip"
+# "key" only keeps the unpacked development copy on the store's extension ID.
+# The store already knows the key, so it's left out of the package.
+store_manifest = {k: v for k, v in manifest.items() if k != "key"}
 with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
     for f in FILES:
-        z.write(f, f)
+        if f == "manifest.json":
+            z.writestr(f, json.dumps(store_manifest, indent=2, ensure_ascii=False) + "\n")
+        else:
+            z.write(f, f)
 print(f"Built {out} ({os.path.getsize(out):,} bytes, {len(FILES)} files)")
