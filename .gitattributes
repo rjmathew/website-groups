@@ -1,0 +1,5 @@
+# Keep every text file on LF line endings, whatever the local git settings,
+# so diffs only show real changes.
+* text=auto eol=lf
+
+*.png binary

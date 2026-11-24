@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Running tests</title>
+  <style>
+    body { font: 13px/1.5 ui-monospace, Consolas, monospace; margin: 16px; }
+    body[data-result="pass"] { background: #eaf3de; }
+    body[data-result="fail"] { background: #fcebeb; }
+  </style>
+</head>
+<body>
+  <pre id="results">Running…</pre>
+  <script src="fake-chrome.js"></script>
+  <script src="../storage.js"></script>
+  <script src="../matching.js"></script>
+  <script src="../backup.js"></script>
+  <script src="tests.js"></script>
+</body>
+</html>

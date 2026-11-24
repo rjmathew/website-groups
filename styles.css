@@ -50,8 +50,8 @@ header { display: flex; align-items: center; gap: 8px; padding: 12px 14px;
          border-bottom: 1px solid var(--border); }
 header .logo { color: var(--accent); display: flex; }
 header .logo svg.i { width: 18px; height: 18px; }
-header h1 { flex: 1; margin: 0; font-size: 14px; font-weight: 600; }
-header .meta { font-size: 12px; color: var(--text2); }
+header h1 { flex: 1; margin: 0; font-size: 14px; font-weight: 600; white-space: nowrap; }
+header .meta { font-size: 12px; color: var(--text2); white-space: nowrap; }
 
 button { font: inherit; color: inherit; cursor: pointer; }
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 5px;
@@ -89,7 +89,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
         background: var(--bg); border: 1px solid var(--border-strong); border-radius: 9px;
         box-shadow: 0 6px 20px rgba(0,0,0,.14); }
 .menu button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 9px;
-               border: 0; border-radius: 6px; background: transparent; text-align: left; }
+               border: 0; border-radius: 6px; background: transparent; text-align: left; white-space: nowrap; }
 .menu button:hover { background: var(--hover); }
 .menu button.danger { color: var(--danger); }
 .menu button.danger:hover { background: var(--danger-bg); }

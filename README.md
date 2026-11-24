@@ -6,12 +6,14 @@ Make a group for anything you do regularly, like your morning reading, work tool
 
 - **Open** to open every site in the group in new tabs
 - **Close** to close every open tab on those sites
+- **Sort** (in the popup header) to arrange open tabs in the current window by your group order
 
 ![Website Groups popup](store/screenshot-1.png)
 
 ## Features
 
 - As many groups as you like, each with its own icon and colour
+- Put groups in any order with **Move up** and **Move down** in each group's ⋮ menu
 - Shows how many sites in each group are open right now
 - Back up your groups to a file and import them on another computer
 - Groups sync between computers through your Chrome account
@@ -42,18 +44,32 @@ The `key` in `manifest.json` gives the unpacked copy the same extension ID as th
 python build.py
 ```
 
-This creates `dist/website-groups-<version>.zip` with only the files the extension needs, and leaves `key` out of its manifest. Increase `version` in `manifest.json` before building an update.
+This creates `dist/website-groups-<version>.zip`. It packages the pages named in `manifest.json`, their icons, and every script and stylesheet those pages load, and leaves `key` out of the manifest. If a page points at a file that doesn't exist, the build stops. Increase `version` in `manifest.json` before building an update.
+
+## Run the tests
+
+```bash
+python tests/run.py
+```
+
+This runs `tests/test.html` in headless Chrome and prints a line per test. It needs Chrome (or Edge) installed. Set the `CHROME` environment variable if it isn't in the usual place. You can also open `tests/test.html` in Chrome to see the results.
+
+The tests cover site matching, sorting, export and import, and storage, using a fake `chrome.storage` in `tests/fake-chrome.js`.
 
 ## Files
 
 | File | Purpose |
 |---|---|
 | `manifest.json` | Extension settings and permissions |
-| `popup.html`, `popup.js` | The toolbar popup: list, open, close and edit groups |
+| `popup.html`, `popup.js` | The toolbar popup: list, open, close, sort and edit groups |
 | `options.html`, `options.js` | The backup page: export and import |
 | `storage.js` | Saving and loading groups, shared by both pages |
+| `matching.js` | Which tabs belong to a group, used by Open, Close, the counts and Sort |
+| `backup.js` | The export file format and import rules |
+| `ui.js` | Small page helpers shared by both pages |
 | `icons.js` | Outline icons used in the interface |
 | `styles.css` | Styles for both pages, including dark mode |
+| `tests/` | The test page and its runner (not part of the package) |
 | `store/` | Chrome Web Store listing text, privacy policy and images (not part of the package) |
 
 ## Feedback and support

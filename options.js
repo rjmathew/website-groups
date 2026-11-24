@@ -1,20 +1,9 @@
-// Export and import of groups. Uses the storage functions from storage.js and
-// icon() from icons.js.
+// The backup page: export and import of groups. Uses storage.js, backup.js,
+// ui.js and icons.js.
 
-const $ = id => document.getElementById(id);
-const EXPORT_FORMAT = "website-groups";
 let groups = [];
 let pendingImport = null; // groups from a file, waiting for the replace confirmation
 let saving = false; // ignore our own storage changes while an import is saving
-
-const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
-
-function setStatus(msg, isError = false) {
-  $("statusText").textContent = msg;
-  $("status").classList.toggle("hidden", !msg);
-  $("status").classList.toggle("error", isError);
-  $("status").firstElementChild.innerHTML = icon(isError ? "alert" : "check");
-}
 
 function renderList() {
   const list = $("list");
@@ -34,57 +23,15 @@ function renderList() {
 }
 
 $("export").onclick = () => {
-  const data = {
-    format: EXPORT_FORMAT,
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    groups: groups.map(({ name, icon, color, entries }) => ({ name, icon, color, entries }))
-  };
+  const { filename, data } = buildExport(groups);
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  const d = new Date();
-  const pad = n => String(n).padStart(2, "0");
-  a.download = `website-groups-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}.json`;
+  a.download = filename;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   setStatus(`Exported ${plural(groups.length, "group")}`);
 };
-
-// Accepts this page's export format, or a bare list of groups.
-function parseImport(text) {
-  let data;
-  try {
-    data = JSON.parse(text);
-  } catch {
-    throw new Error("That file isn't a Website Groups export. Choose a .json file exported from Website Groups.");
-  }
-  const list = Array.isArray(data) ? data : data && data.groups;
-  if (!Array.isArray(list)) {
-    throw new Error("That file doesn't contain any groups. Choose a file exported from Website Groups.");
-  }
-  const valid = list.filter(g => g && typeof g === "object" && Array.isArray(g.entries));
-  if (!valid.length) throw new Error("No groups were found in that file.");
-  // Imported groups always get new ids so they can't clash with existing ones.
-  return valid.map((g, i) => normalizeGroup({ ...g, id: newGroupId() + i }, groups.length + i));
-}
-
-function mergeGroups(imported) {
-  const result = groups.map(g => ({ ...g }));
-  let added = 0, updated = 0;
-  for (const g of imported) {
-    const match = result.find(r => r.name.toLowerCase() === g.name.toLowerCase());
-    if (match) {
-      const before = JSON.stringify(match);
-      Object.assign(match, { icon: g.icon, color: g.color, entries: g.entries });
-      if (JSON.stringify(match) !== before) updated++;
-    } else {
-      result.push(g);
-      added++;
-    }
-  }
-  return { result, added, updated };
-}
 
 async function applyImport(newGroups, message) {
   saving = true;
@@ -110,7 +57,7 @@ $("file").onchange = async () => {
   $("confirmReplace").classList.add("hidden");
   let imported;
   try {
-    imported = parseImport(await file.text());
+    imported = parseImport(await file.text(), groups.length);
   } catch (err) {
     setStatus(err.message, true);
     return;
@@ -125,7 +72,7 @@ $("file").onchange = async () => {
     setStatus("");
     return;
   }
-  const { result, added, updated } = mergeGroups(imported);
+  const { result, added, updated } = mergeGroups(groups, imported);
   const parts = [];
   if (added) parts.push(`added ${plural(added, "group")}`);
   if (updated) parts.push(`updated ${plural(updated, "group")}`);

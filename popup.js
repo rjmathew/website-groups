@@ -1,53 +1,10 @@
-// Uses DEFAULT_GROUPS, COLORS, GROUP_ICONS and the storage functions from
-// storage.js, and icon() from icons.js.
+// The toolbar popup. Uses storage.js, matching.js, ui.js and icons.js.
 
-const $ = id => document.getElementById(id);
 let groups = [];
 let editingId = null;
 let confirmingId = null; // group whose card is showing the delete confirmation
 let editIcon, editColor;
-let statusTimer;
-
-function setStatus(msg, isError = false) {
-  clearTimeout(statusTimer);
-  $("statusText").textContent = msg;
-  $("status").classList.toggle("hidden", !msg);
-  $("status").classList.toggle("error", isError);
-  $("status").firstElementChild.innerHTML = icon(isError ? "alert" : "check");
-  if (msg && !isError) statusTimer = setTimeout(() => setStatus(""), 5000);
-}
-
-// "https://www.intouch.org/read" -> "intouch.org/read", so matching works whether
-// the entry was typed as a full URL or a bare keyword.
-function toKeyword(entry) {
-  return entry.trim().toLowerCase().replace(/^[a-z]+:\/\//, "").replace(/^www\./, "");
-}
-
-// Returns a function that tests whether a tab's URL matches the entry.
-// Entries that look like a web address ("x.com", "bbc.com/news") match that site
-// and its subdomains only, so "x.com" doesn't also match dropbox.com. Anything
-// else ("bible") matches anywhere in the address.
-function makeMatcher(entry) {
-  const k = toKeyword(entry);
-  if (!k) return null;
-  const site = k.match(/^([a-z0-9-]+(?:\.[a-z0-9-]+)+)(\/.*)?$/);
-  if (!site) return url => url.toLowerCase().includes(k);
-  const [, domain, path = ""] = site;
-  return url => {
-    let u;
-    try { u = new URL(url); } catch { return false; }
-    const host = u.hostname.replace(/^www\./, "");
-    if (host !== domain && !host.endsWith("." + domain)) return false;
-    return (u.pathname + u.search).toLowerCase().startsWith(path);
-  };
-}
-
-function toUrl(entry) {
-  const e = entry.trim();
-  return /^[a-z]+:\/\//i.test(e) ? e : "https://" + e;
-}
-
-const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
+statusAutoHideMs = 5000;
 
 async function openGroup(group) {
   for (const entry of group.entries) {
@@ -58,9 +15,7 @@ async function openGroup(group) {
 }
 
 async function closeGroup(group) {
-  const matchers = group.entries.map(makeMatcher).filter(Boolean);
-  const tabs = await chrome.tabs.query({});
-  const toClose = tabs.filter(t => t.url && matchers.some(m => m(t.url)));
+  const toClose = tabsInGroup(await chrome.tabs.query({}), group);
   if (toClose.length) await chrome.tabs.remove(toClose.map(t => t.id));
   setStatus(toClose.length
     ? `Closed ${plural(toClose.length, "tab")} from ${group.name}`
@@ -68,18 +23,31 @@ async function closeGroup(group) {
   await renderList();
 }
 
-// How many of the group's entries have at least one matching tab open.
-function countOpen(group, urls) {
-  return group.entries.filter(entry => {
-    const m = makeMatcher(entry);
-    return m && urls.some(m);
-  }).length;
+// Moves the current window's tabs into group order. See sortPlan() in matching.js.
+async function sortTabs() {
+  if (!groups.length) {
+    setStatus("Create a group first to sort tabs");
+    return;
+  }
+  const plan = sortPlan(await chrome.tabs.query({ currentWindow: true }), groups);
+  if (!plan) {
+    setStatus("No open tabs match your groups");
+    return;
+  }
+  if (plan.alreadySorted) {
+    setStatus("Tabs are already sorted");
+    return;
+  }
+  try {
+    await chrome.tabs.move(plan.matchedIds, { index: plan.startIndex });
+    setStatus(`Sorted ${plural(plan.matchedIds.length, "tab")}`);
+  } catch (err) {
+    setStatus("Couldn't sort tabs: " + (err && err.message || err), true);
+  }
 }
 
 async function renderList() {
   const tabs = await chrome.tabs.query({});
-  // pendingUrl covers tabs we just created that haven't started loading yet.
-  const urls = tabs.map(t => (t.url || t.pendingUrl || "").toLowerCase());
   $("tabCount").textContent = plural(tabs.length, "tab") + " open";
   const container = $("groups");
   container.replaceChildren();
@@ -92,52 +60,62 @@ async function renderList() {
       </div>`;
     container.querySelector("button").onclick = () => showEdit(null);
   }
-  for (const group of groups) {
-    const card = document.createElement("div");
-    card.className = `group c-${group.color}`;
-    if (group.id === confirmingId) {
-      renderConfirm(card, group);
-      container.append(card);
-      continue;
-    }
-    const open = countOpen(group, urls);
-    const total = group.entries.length;
-    card.innerHTML = `
-      <div class="top">
-        <div class="tile">${icon(group.icon)}</div>
-        <div class="info">
-          <div class="name"></div>
-          <div class="sub ${open ? "" : "none"}">${open ? `${open} of ${total} open` : "None open"}</div>
-        </div>
-        <button class="btn open">${icon("browserPlus")}Open</button>
-        <button class="btn close">${icon("browserX")}Close</button>
-        <button class="btn icon ghost more" aria-label="More options" title="More options">${icon("dots")}</button>
-      </div>
-      <div class="bar"><div style="width:${total ? Math.round(open / total * 100) : 0}%"></div></div>
-      <div class="menu hidden">
-        <button class="edit">${icon("pencil")}Edit</button>
-        <button class="delete danger">${icon("trash")}Delete</button>
-      </div>`;
-    const name = card.querySelector(".name");
-    name.textContent = group.name;
-    card.querySelector(".info").title = group.entries.join("\n");
-    card.querySelector(".open").title = `Open all ${plural(total, "site")}`;
-    card.querySelector(".close").title = "Close tabs on these sites";
-    card.querySelector(".open").onclick = () => openGroup(group);
-    card.querySelector(".close").onclick = () => closeGroup(group);
-    card.querySelector(".more").onclick = e => {
-      e.stopPropagation();
-      const menu = card.querySelector(".menu");
-      const wasHidden = menu.classList.contains("hidden");
-      closeMenus();
-      menu.classList.toggle("hidden", !wasHidden);
-    };
-    card.querySelector(".edit").onclick = () => showEdit(group.id);
-    card.querySelector(".delete").onclick = () => askDelete(group.id);
-    container.append(card);
-  }
+  groups.forEach((group, i) => container.append(renderCard(group, i, tabs)));
   $("listView").classList.remove("hidden");
   $("editView").classList.add("hidden");
+}
+
+// One group's card: icon, name, open count, Open and Close, and the ⋮ menu.
+function renderCard(group, index, tabs) {
+  const card = document.createElement("div");
+  card.className = `group c-${group.color}`;
+  if (group.id === confirmingId) {
+    renderConfirm(card, group);
+    return card;
+  }
+  const open = countOpen(group, tabs);
+  const total = group.entries.length;
+  card.innerHTML = `
+    <div class="top">
+      <div class="tile">${icon(group.icon)}</div>
+      <div class="info">
+        <div class="name"></div>
+        <div class="sub ${open ? "" : "none"}">${open ? `${open} of ${total} open` : "None open"}</div>
+      </div>
+      <button class="btn open">${icon("browserPlus")}Open</button>
+      <button class="btn close">${icon("browserX")}Close</button>
+      <button class="btn icon ghost more" aria-label="More options" title="More options">${icon("dots")}</button>
+    </div>
+    <div class="bar"><div style="width:${total ? Math.round(open / total * 100) : 0}%"></div></div>
+    <div class="menu hidden">
+      <button class="edit">${icon("pencil")}Edit</button>
+      ${index > 0 ? `<button class="moveUp">${icon("arrowUp")}Move up</button>` : ""}
+      ${index < groups.length - 1 ? `<button class="moveDown">${icon("arrowDown")}Move down</button>` : ""}
+      <button class="delete danger">${icon("trash")}Delete</button>
+    </div>`;
+  card.querySelector(".name").textContent = group.name;
+  card.querySelector(".info").title = group.entries.join("\n");
+  card.querySelector(".open").title = `Open all ${plural(total, "site")}`;
+  card.querySelector(".close").title = "Close tabs on these sites";
+
+  const on = (selector, handler) => {
+    const el = card.querySelector(selector);
+    if (el) el.onclick = handler;
+  };
+  on(".open", () => openGroup(group));
+  on(".close", () => closeGroup(group));
+  on(".more", e => {
+    e.stopPropagation();
+    const menu = card.querySelector(".menu");
+    const wasHidden = menu.classList.contains("hidden");
+    closeMenus();
+    menu.classList.toggle("hidden", !wasHidden);
+  });
+  on(".edit", () => showEdit(group.id));
+  on(".moveUp", () => moveGroup(group.id, -1));
+  on(".moveDown", () => moveGroup(group.id, 1));
+  on(".delete", () => askDelete(group.id));
+  return card;
 }
 
 function closeMenus() {
@@ -164,6 +142,21 @@ function renderConfirm(card, group) {
 
 function askDelete(id) {
   confirmingId = id;
+  renderList();
+}
+
+async function moveGroup(id, delta) {
+  const i = groups.findIndex(g => g.id === id);
+  const j = i + delta;
+  if (i < 0 || j < 0 || j >= groups.length) return;
+  const updated = [...groups];
+  [updated[i], updated[j]] = [updated[j], updated[i]];
+  try {
+    await saveGroupOrder(updated);
+    groups = updated;
+  } catch (err) {
+    setStatus(storageErrorMessage(err), true);
+  }
   renderList();
 }
 
@@ -216,6 +209,7 @@ function showEdit(id) {
   $("editName").focus();
 }
 
+$("sortTabs").onclick = sortTabs;
 $("addGroup").onclick = () => showEdit(null);
 $("cancelEdit").onclick = renderList;
 $("backEdit").onclick = renderList;

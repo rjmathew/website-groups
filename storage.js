@@ -81,6 +81,10 @@ async function saveGroup(group, groups) {
   });
 }
 
+async function saveGroupOrder(groups) {
+  await chrome.storage.sync.set({ groupOrder: groups.map(g => g.id) });
+}
+
 async function removeGroup(id, groups) {
   await chrome.storage.sync.set({ groupOrder: groups.map(g => g.id) });
   await chrome.storage.sync.remove(groupKey(id));
