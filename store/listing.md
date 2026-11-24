@@ -4,7 +4,7 @@ Copy each section into the matching field in the Developer Dashboard.
 
 ## Package tab
 
-Upload `dist/website-groups-1.0.0.zip`.
+Upload the latest `dist/website-groups-<version>.zip` (run `python build.py` to create it). For version 1.0.2 that's `dist/website-groups-1.0.2.zip`.
 
 ## Store listing tab
 
@@ -16,27 +16,33 @@ Upload `dist/website-groups-1.0.0.zip`.
 **Description:**
 
 ```
-Website Groups lets you open or close a whole group of websites in one click.
+Open or close a whole group of websites in one click, and keep your tabs in order.
 
-Make a group for anything you do regularly: your morning reading, the tools you use at work, the news sites you check, or the sites that distract you. Then use the toolbar button to:
+Make a group for anything you do regularly: your morning news, the tools you use at work, your reading list, or the sites that distract you. Then use the toolbar button to:
 
-• Open: opens every site in the group in new tabs.
-• Close: closes every open tab on those sites, including subdomains (closing "facebook.com" also closes "m.facebook.com").
+• Open: opens every site in the group in new tabs, so you can start your day or a task in one click.
+• Close: closes every open tab on those sites, including subdomains (closing "facebook.com" also closes "m.facebook.com"). Clear out distractions or tidy up after a task without hunting through tabs.
+• Sort: arranges the tabs in your window by group, in the order you choose. Tabs that aren't in a group move to the end, and pinned tabs stay where they are.
 
 Each group shows how many of its sites are open right now, so you can see at a glance what's open.
 
-Website Groups is separate from Chrome's built-in tab groups (the coloured labels on your tab strip). It doesn't change them, and you can use both together.
-
 FEATURES
 • As many groups as you like, each with its own icon and colour
+• Put your groups in any order with Move up and Move down
 • Open and close counts for every group, with a progress bar
-• Add sites as web addresses (bbc.com/news) or as keywords (any tab whose address contains "bible")
+• Add sites as web addresses (wsj.com, bbc.com/news) or as keywords (any tab whose address contains "news")
 • Back up your groups to a file, and import them on another computer
 • Groups sync between computers through your Chrome account
 • Light and dark mode
+• Free, with no account or sign-up
+
+Website Groups is separate from Chrome's built-in tab groups (the coloured labels on your tab strip), and you can use both together.
 
 PRIVACY
-Website Groups doesn't collect, send or sell any data. Your groups are saved in Chrome's own storage and never leave your browser except through Chrome sync. It checks the addresses of your open tabs only to count and close the ones that match your groups.
+Website Groups doesn't collect, send or sell any data. Your groups are saved in Chrome's own storage and never leave your browser except through Chrome sync. It checks the addresses of your open tabs only to count, close and sort the ones that match your groups.
+
+FEEDBACK
+Found a bug or have an idea? Open an issue at https://github.com/rjmathew/website-groups/issues
 ```
 
 **Category:** Productivity, then the closest subcategory (Tools, or Workflow and planning).
